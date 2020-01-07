@@ -1,4 +1,4 @@
-<?php  require_once('inicio_php.php'); ?>
+<?php require_once('inicio_php.php');?>
 <!DOCTYPE html>
 <html lang="es" >
 	<head>
