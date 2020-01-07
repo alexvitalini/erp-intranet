@@ -1,0 +1,11 @@
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<script>
+	window.addEventListener('load', alerta, false);
+
+	function alerta() {
+		swal("Necesita iniciar sesi\u00F3n", " ", "error")
+			.then((value) => {
+			location.href = "login.php";
+		});
+	}
+</script>

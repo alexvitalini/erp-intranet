@@ -1,0 +1,1 @@
+<?php require_once('../inicio_php.php');?>
