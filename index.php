@@ -1,6 +1,6 @@
-<?php  require_once('inicio_php.php');  ?>
+<?php  require_once('inicio_php.php'); ?>
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" >
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 		<!-- Meta, title, CSS, favicons, etc. -->
