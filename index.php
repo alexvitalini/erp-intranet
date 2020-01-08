@@ -81,7 +81,9 @@ nombre
 calculo (set)
 area "libre" departamentos
 
-
 id(hide),nombre,select,area texto (tooltip distintos)
+
+
+
 */
 ?>
