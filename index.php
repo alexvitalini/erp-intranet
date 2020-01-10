@@ -83,7 +83,7 @@ area "libre" departamentos
 
 id(hide),nombre,select,area texto (tooltip distintos)
 
-
+Modificado en Lenovo-vitalini
 
 */
 ?>
