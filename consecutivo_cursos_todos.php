@@ -5,6 +5,15 @@
 $cFechaDesde = "";
 $cFechaHasta = "";
 
+$cGruposDelModulo = "Cursos,Representantes,Gastos,Honorarios";
+/*SELECT * FROM `erp_grupos` WHERE `nombre_grupo` IN ('Cursos','Representantes','Gastos','Honorarios')
+select * from erp_grupos_usuarios where id_usuario='1'
+select * from erp_grupos where nombre_grupo in ('Cursos','Representantes','Gastos','Honorarios')
+
+select id_grupo,nombre_grupo,descripcion_grupo from erp_grupos_usuarios left join erp_grupos using ( id_grupo ) where id_usuario='1' && nombre_grupo IN ('Cursos','Representantes','Gastos','Honorarios')
+->vista_principal
+*/
+
 function CargaFechasDefault( &$cIni , &$cFin ) {
 	global $connect;
 	
@@ -111,13 +120,12 @@ CargaFechasDefault( $cFechaDesde , $cFechaHasta );
 	</div>
 </div>
 
-
 							</div> <!-- /.col -->
 						</div> <!-- /.row opciones -->
 					</form>
 				</div> <!-- /.card-body -->
 				<div class="card-footer " id="footer-resultado" style="display:none">
-					Footer
+					<?php /*$connect->vistasGrupos( "'Cursos','Representantes','Gastos','Honorarios'" )*/ ?>
 				</div> <!-- /.card-footer -->
 			</div><!-- /.card-->
 		</div><!-- /.col-->

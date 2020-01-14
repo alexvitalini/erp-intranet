@@ -84,6 +84,7 @@ function mysql_fetch_all($res) {
 		public	$aDatosUsuario; 
 		public	$aIni = array();
 		public	$aPermisos = array();
+		public  $nVista_principal;
 		
 		public $lUsuarioValido = false;
 
@@ -187,7 +188,7 @@ function mysql_fetch_all($res) {
 		public function CargaIni( $nIdUsuario , $id_departamento ){
 			$aRespuesta = array();
 			$nIdUsuario+=10000;
-			$sql = "select seccion,entrada,valor,actualizado from erp_ini where depto_usuario in ('$id_departamento','$nIdUsuario')";
+			$sql  = "select seccion,entrada,valor,actualizado from erp_ini where depto_usuario in ('$id_departamento','$nIdUsuario')";
 			$sIni = $this->sQuery( $sql );
 			$this->aIni = mysql_fetch_all( $sIni );
 			mysql_free_result($sIni);
@@ -233,6 +234,7 @@ function mysql_fetch_all($res) {
 			if ( $this->lUsuarioValido 	= ( mysql_num_rows( $sConsulta ) == 1 ) ) {
 				$this->aDatosUsuario 	=  mysql_fetch_assoc( $sConsulta );
 				$this->nIdUsuario 		= $this->aDatosUsuario['idUsuario'];
+				$this->nVista_principal = $this->aDatosUsuario['vista_principal'];
 				$this->nIdDepartamento	= $this->aDatosUsuario['numero_departamento'];
 				$this->CargaIni( $this->nIdUsuario , $this->nIdDepartamento); 
 				$this->CargaPermisos( $this->aDatosUsuario['idUsuario'] );
@@ -264,8 +266,13 @@ function mysql_fetch_all($res) {
 			return $this->lUsuarioValido;
 		}
 		
-		public function vistasGrupos(){
+		public function vistasXGrupos( $cGruposPermitidos , &cGrupos,&cFiltros,&$cDialogos ) {
+			$cSQL = "select id_grupo,nombre_grupo,descripcion_grupo from erp_grupos_usuarios left join erp_grupos using ( id_grupo ) where id_usuario='$this->nIdUsuario' && nombre_grupo IN ($cGruposPermitidos)";
 			
+			$sSQL = $this->sQuery( $cSQL );
+			
+			
+			return $cSQL;
 		}
 	}
 ?>
