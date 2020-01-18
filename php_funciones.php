@@ -32,7 +32,7 @@ function _cfecha( $nFecha ) {
 
 function nHoy() { return strtotime("now"); }
 
-function cHoy() { return _cfecha(); } 
+function cHoy() { return _cfecha( null ); } 
 
 function nManana($nFecha) { return strtotime("+1 day",$nFecha); }
 

@@ -227,22 +227,6 @@ function mysql_fetch_all($res) {
 			$this->sQuery( $cSetHistoria );
 		}
 
-		public function lConsultaUsuario( $cCorreo ) {
-			global $cConsultaUsuarioStatic;
-
-			$sConsulta = $this->sQuery( sprintf( $cConsultaUsuarioStatic , $cCorreo ) );
-			if ( $this->lUsuarioValido 	= ( mysql_num_rows( $sConsulta ) == 1 ) ) {
-				$this->aDatosUsuario 	=  mysql_fetch_assoc( $sConsulta );
-				$this->nIdUsuario 		= $this->aDatosUsuario['idUsuario'];
-				$this->nVista_principal = $this->aDatosUsuario['vista_principal'];
-				$this->nIdDepartamento	= $this->aDatosUsuario['numero_departamento'];
-				$this->CargaIni( $this->nIdUsuario , $this->nIdDepartamento); 
-				$this->CargaPermisos( $this->aDatosUsuario['idUsuario'] );
-				$this->SetHistoria( $this->aDatosUsuario['idUsuario'] , "sistema", "abriendo:".$_SERVER['PHP_SELF'] ); //array_pop( explode('/', $_SERVER['PHP_SELF'] ) )
-			}
-			return $this->lUsuarioValido;
-		}
-
 		public function validaUsuario( $cUsuario , $cClave ) {
 			global $cValidaUsuarioStatic;
 			
@@ -265,12 +249,51 @@ function mysql_fetch_all($res) {
 			}
 			return $this->lUsuarioValido;
 		}
-		
-		public function vistasXGrupos( $cGruposPermitidos , &cGrupos,&cFiltros,&$cDialogos ) {
-			$cSQL = "select id_grupo,nombre_grupo,descripcion_grupo from erp_grupos_usuarios left join erp_grupos using ( id_grupo ) where id_usuario='$this->nIdUsuario' && nombre_grupo IN ($cGruposPermitidos)";
+
+		public function lConsultaUsuario( $cCorreo ) {
+			global $cConsultaUsuarioStatic;
+
+			$sConsulta = $this->sQuery( sprintf( $cConsultaUsuarioStatic , $cCorreo ) );
+			if ( $this->lUsuarioValido 	= ( mysql_num_rows( $sConsulta ) == 1 ) ) {
+				$this->aDatosUsuario 	=  mysql_fetch_assoc( $sConsulta );
+				$this->nIdUsuario 		= $this->aDatosUsuario['idUsuario'];
+				$this->nVista_principal = $this->aDatosUsuario['vista_principal'];
+				$this->nIdDepartamento	= $this->aDatosUsuario['numero_departamento'];
+				$this->CargaIni( $this->nIdUsuario , $this->nIdDepartamento); 
+				$this->CargaPermisos( $this->aDatosUsuario['idUsuario'] );
+				$this->SetHistoria( $this->aDatosUsuario['idUsuario'] , "sistema", "abriendo:".$_SERVER['PHP_SELF'] ); //array_pop( explode('/', $_SERVER['PHP_SELF'] ) )
+			}
+			return $this->lUsuarioValido;
+		}
+
+		public function lVistasXGrupos( $cGruposPermitidos , &$cVistasSelects , &$cFiltrosSelects , &$cDialogosSelects ) {
+			// $cSQL = "select id_grupo,nombre_grupo,descripcion_grupo from erp_grupos_usuarios left join erp_grupos using ( id_grupo ) where id_usuario='$this->nIdUsuario' && nombre_grupo IN ($cGruposPermitidos)";
+			$cSQL = "select id_grupo from erp_grupos_usuarios left join erp_grupos using ( id_grupo ) where id_usuario='$this->nIdUsuario' && nombre_grupo IN ($cGruposPermitidos)";
 			
-			$sSQL = $this->sQuery( $cSQL );
+			$sGrupos = $this->sQuery( $cSQL );
 			
+			while ( $oGrupos = mysql_fetch_object( $sGrupos ) ){
+				$cSQL = "select id_vista,nombre_vista,descripcion_vista from erp_vistas WHERE id_grupo = '$oGrupos->id_grupo'";
+				$sVistas = $this->sQuery( $cSQL );
+				while ( $oVistas = mysql_fetch_object( $sVistas ) ) {
+					if ( $oVistas->id_vista == $this->nVista_principal ) {
+						$cSelected=" selected ";
+						$cSQL = "SELECT id_filtro,nombre_filtro,descripcion_filtro FROM erp_filtros WHERE id_grupo='$oGrupos->id_grupo' && id_vista='$oVistas->id_vista'";
+						echo($cSQL);
+						$sFiltros = $this->sQuery( $cSQL );
+						while( $oFiltros = mysql_fetch_object( $sFiltros ) ) {
+							$cFiltrosSelects.= "<option value='$oFiltros->id_filtro' title='$oFiltros->descripcion_filtro'$cSelected>$oFiltros->nombre_filtro</option>\r\n";
+						}
+					}
+					
+					$cVistasSelects .= "<option value='$oVistas->id_vista' title='$oVistas->descripcion_vista'$cSelected>$oVistas->nombre_vista</option>\r\n";
+					$cSelected="";
+				}
+			}
+			if ( $cVistasSelects ) {
+				$cVistasSelects.="<optgroup label='----------'></optgroup>\r\n";
+				$cVistasSelects.="<option>Seleccionar por omisión</option>\r\n";
+			}
 			
 			return $cSQL;
 		}

@@ -5,11 +5,13 @@
 $cFechaDesde = "";
 $cFechaHasta = "";
 
-$cGruposDelModulo = "Cursos,Representantes,Gastos,Honorarios";
-/*SELECT * FROM `erp_grupos` WHERE `nombre_grupo` IN ('Cursos','Representantes','Gastos','Honorarios')
-select * from erp_grupos_usuarios where id_usuario='1'
-select * from erp_grupos where nombre_grupo in ('Cursos','Representantes','Gastos','Honorarios')
+$cVistasSelects = "";
+$cFiltrosSelects = "";
+$cDialogosSelects = "";
 
+$cGruposDelModulo = "'Cursos','Representantes','Gastos','Honorarios'";
+
+/*
 select id_grupo,nombre_grupo,descripcion_grupo from erp_grupos_usuarios left join erp_grupos using ( id_grupo ) where id_usuario='1' && nombre_grupo IN ('Cursos','Representantes','Gastos','Honorarios')
 ->vista_principal
 */
@@ -20,12 +22,14 @@ function CargaFechasDefault( &$cIni , &$cFin ) {
 	$cConfiguracion = $connect->cValorIni( "consecutivo_cursos_todos" , "tipoFechaInicial" , $cDefault = "Semanas2Lunes" );
 	
 	if ( $cConfiguracion == "Semanas2Lunes" ) { // Vicky
-		$cIni = _cfecha( nLunes2Semanas() );
+		$cIni = _cfecha( nLunes2Semanas( null ) );
 		$cFin = cHoy();
 	}
 }
 
 CargaFechasDefault( $cFechaDesde , $cFechaHasta );
+ 
+echo( $connect->lVistasXGrupos( $cGruposDelModulo , $cVistasSelects, $cFiltrosSelects ,$cDialogosSelects ) );
 
 ?>
 <div class="container-fuid" style="background-color: #FFF;">
@@ -81,10 +85,7 @@ CargaFechasDefault( $cFechaDesde , $cFechaHasta );
 	<label for="tipo_vista">Vista</label>
 	<div class="input-group input-group-sm">
 		<select class="form-control" id="tipo_vista" name="tipo_vista">
-			<option value="inicial" >General</option>
-			<option value="carga">Gastos</option>
-			<option>Representantes</option>
-			<option>Liquidaciones</option>
+<?php echo($cVistasSelects); ?>
 		</select>
 	</div>
 </div>
@@ -96,10 +97,7 @@ CargaFechasDefault( $cFechaDesde , $cFechaHasta );
 	<label for="tipo_vista">Filtro</label>
 	<div class="input-group input-group-sm">
 		<select class="form-control" id="filtro" name="filtro">
-			<option value="inicial" >Todos</option>
-			<option value="carga">Activos</option>
-			<option>Locales</option>
-			<option>Interior</option>
+<?php echo($cFiltrosSelects); ?>
 		</select>
 	</div>
 </div>
