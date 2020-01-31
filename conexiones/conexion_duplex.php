@@ -27,6 +27,9 @@ where
 
 	$cQueryPermisos ="select departamento,permiso from erp_permisos left join erp_departamentos using ( id_departamento ) where id_usuario='%s'";
 
+	$cQueryRangoFechas = "SELECT id_rango,nombre_rango,erp_rango_fechas.descripcion_rango,indice_rango,nombre_grupo FROM erp_grupos_usuarios left join erp_grupos_rangos USING (id_grupo) left JOIN erp_rango_fechas USING (id_rango) left join erp_grupos using ( id_grupo ) WHERE id_usuario=%s && nombre_grupo IN (%s) && id_rango is not null order by indice_rango";
+
+
 function urls_amigables($url) {
 
     $url = strtolower($url);
@@ -85,6 +88,7 @@ function mysql_fetch_all($res) {
 		public	$aIni = array();
 		public	$aPermisos = array();
 		public  $nVista_principal;
+		public  $nRango_principal;
 		
 		public $lUsuarioValido = false;
 
@@ -258,6 +262,7 @@ function mysql_fetch_all($res) {
 				$this->aDatosUsuario 	=  mysql_fetch_assoc( $sConsulta );
 				$this->nIdUsuario 		= $this->aDatosUsuario['idUsuario'];
 				$this->nVista_principal = $this->aDatosUsuario['vista_principal'];
+				$this->nRango_principal = $this->aDatosUsuario['rango_principal'];
 				$this->nIdDepartamento	= $this->aDatosUsuario['numero_departamento'];
 				$this->CargaIni( $this->nIdUsuario , $this->nIdDepartamento); 
 				$this->CargaPermisos( $this->aDatosUsuario['idUsuario'] );
@@ -266,34 +271,130 @@ function mysql_fetch_all($res) {
 			return $this->lUsuarioValido;
 		}
 
-		public function lVistasXGrupos( $cGruposPermitidos , &$cVistasSelects , &$cFiltrosSelects , &$cDialogosSelects ) {
-			// $cSQL = "select id_grupo,nombre_grupo,descripcion_grupo from erp_grupos_usuarios left join erp_grupos using ( id_grupo ) where id_usuario='$this->nIdUsuario' && nombre_grupo IN ($cGruposPermitidos)";
+		public function filtrosPrincipalesSegunVista( $nId_vista , &$nFiltroPrincipal , &$nDialogoPrincipal ){
+			$cSQL = "select filtro_principal,dialogo_principal from erp_vistas_principales where id_usuario='$this->nIdUsuario' && id_vista='$nId_vista'";
+			
+			$sResultado = $this->sQuery( $cSQL );
+			
+			if ( mysql_num_rows( $sResultado ) ){
+				$oResultado = mysql_fetch_object( $sResultado );
+				$nFiltroPrincipal = $oResultado->filtro_principal;
+				$nDialogoPrincipal = $oResultado->dialogo_principal;
+				mysql_free_result( $sResultado );
+			} else{
+				$nFiltroPrincipal = $nDialogoPrincipal = 0;
+			}
+			
+		}
+		
+		public function lFiltrosSegunVista( $nIdVista , $nFiltroPrincipal , &$cSelecFiltroActual ) {
+			
+			// $cSQL = "SELECT id_filtro,nombre_filtro,descripcion_filtro FROM erp_filtros WHERE id_grupo='$oGrupos->id_grupo' && id_vista='$oVistas->id_vista'";
+			$cSQL = "SELECT id_filtro,nombre_filtro,descripcion_filtro FROM erp_filtros WHERE id_vista='$nIdVista'";
+			
+			$sFiltros			= $this->sQuery( $cSQL );
+			$cSelected			= "";
+			$cSelecFiltroActual	= "";
+			
+			while( $oFiltros = mysql_fetch_object( $sFiltros ) ) {
+				if ( $oFiltros->id_filtro == $nFiltroPrincipal )
+					$cSelected = " selected ";
+				else
+					$cSelected = "";
+				$cSelecFiltroActual.= "<option value='$oFiltros->id_filtro' title='$oFiltros->descripcion_filtro'$cSelected>$oFiltros->nombre_filtro</option>";
+			}	
+		}
+		
+		public function lDialogosSegunVista( $nIdVista , $nDialogoPrincipal , &$cSelecDialogoActual ) {
+
+			$cSQL = "SELECT id_dialogo,nombre_dialogo,descripcion_dialogo FROM erp_dialogos WHERE id_vista='$nIdVista'";
+			
+			$sDialogos				= $this->sQuery( $cSQL );
+			$cSelected				= "";
+			$cSelecDialogoActual	= "";
+			
+			while( $oDialogos = mysql_fetch_object( $sDialogos ) ) {
+				if ( $oDialogos->id_dialogo == $nDialogoPrincipal )
+					$cSelected = " selected ";
+				else
+					$cSelected = "";
+				$cSelecDialogoActual.= "<option value='$oDialogos->id_dialogo' title='$oDialogos->descripcion_dialogo'$cSelected>$oDialogos->nombre_dialogo</option>";
+			}	
+		}
+		public function cRangosFechasPredefinidos( $cGruposPermitidos ) {
+			global $cQueryRangoFechas;
+			
+			$cRangosFechas="";
+			$cSQL = sprintf( $cQueryRangoFechas , $this->nIdUsuario , $cGruposPermitidos );
+			
+			$sRangos = $this->sQuery( $cSQL );
+			
+			if ( mysql_num_rows( $sRangos ) ){
+				while ( $oRango = mysql_fetch_object( $sRangos ) ){
+					$cRangosFechas .= "<a class='dropdown-item' href='#' onClick='' alt='$oRango->descripcion_rango'>$oRango->nombre_rango</a>\r\n";
+				}
+			}
+			return $cRangosFechas;
+		}
+//<a class="dropdown-item" href="#" onClick="javascrip:CargaConsecutivo('a2')"><i class="fa fa-check"></i>Desde hace un mes</a>
+
+		public function lVistasXGrupos( $cGruposPermitidos , &$cVistasSelects ,&$cFiltroActual , &$cJSFiltrosSelects , &$cDialogosActual , &$cJSDialogosSelects ) {
 			$cSQL = "select id_grupo from erp_grupos_usuarios left join erp_grupos using ( id_grupo ) where id_usuario='$this->nIdUsuario' && nombre_grupo IN ($cGruposPermitidos)";
 			
 			$sGrupos = $this->sQuery( $cSQL );
 			
-			while ( $oGrupos = mysql_fetch_object( $sGrupos ) ){
-				$cSQL = "select id_vista,nombre_vista,descripcion_vista from erp_vistas WHERE id_grupo = '$oGrupos->id_grupo'";
-				$sVistas = $this->sQuery( $cSQL );
-				while ( $oVistas = mysql_fetch_object( $sVistas ) ) {
-					if ( $oVistas->id_vista == $this->nVista_principal ) {
-						$cSelected=" selected ";
-						$cSQL = "SELECT id_filtro,nombre_filtro,descripcion_filtro FROM erp_filtros WHERE id_grupo='$oGrupos->id_grupo' && id_vista='$oVistas->id_vista'";
-						echo($cSQL);
-						$sFiltros = $this->sQuery( $cSQL );
-						while( $oFiltros = mysql_fetch_object( $sFiltros ) ) {
-							$cFiltrosSelects.= "<option value='$oFiltros->id_filtro' title='$oFiltros->descripcion_filtro'$cSelected>$oFiltros->nombre_filtro</option>\r\n";
-						}
-					}
+			if ( mysql_num_rows( $sGrupos ) ) {
+				
+				$cVistasSelects 	= "";
+				$cFiltroActual		= "";
+				$cJSFiltrosSelects	= "";
+				$cDialogosActual 	= "";
+				$cJSDialogosSelects	= "";	
+				
+				while ( $oGrupos = mysql_fetch_object( $sGrupos ) ){
 					
-					$cVistasSelects .= "<option value='$oVistas->id_vista' title='$oVistas->descripcion_vista'$cSelected>$oVistas->nombre_vista</option>\r\n";
-					$cSelected="";
+					$cSQL		= "select id_vista,nombre_vista,descripcion_vista from erp_vistas WHERE id_grupo = '$oGrupos->id_grupo'";
+					$sVistas	= $this->sQuery( $cSQL );
+					
+					while ( $oVistas = mysql_fetch_object( $sVistas ) ) {
+						
+						$nVista = $oVistas->id_vista;
+						
+						$this->filtrosPrincipalesSegunVista( $nVista , $nFiltroPrincipal , $nDialogoPrincipal );
+
+						//**
+						$this->lFiltrosSegunVista( $nVista , $nFiltroPrincipal , $cSelecFiltroActual);
+						$cJSFiltrosSelects	.= "\t".'$aFiltro'."[$nVista] = \"$cSelecFiltroActual\";\r\n";
+						
+						if ( !$cFiltroActual )									// Si está vacío el Select actual, asigna el primero que encuentra
+							$cFiltroActual = $cSelecFiltroActual;				// (Para el caso de que no halla Vista Principal por default)
+						
+						if ( $oVistas->id_vista == $this->nVista_principal ) { 
+							$cSelected=" selected ";
+							$cFiltroActual	= $cSelecFiltroActual;
+						} else
+							$cSelected="";
+
+						$cVistasSelects .= "<option value='$oVistas->id_vista' title='$oVistas->descripcion_vista'$cSelected>$oVistas->nombre_vista</option>\r\n";
+
+						//**
+						$this->lDialogosSegunVista( $nVista , $nDialogoPrincipal , $cSelecDialogoActual);
+						$cJSDialogosSelects	.= "\t\$aDialogo[$nVista] = \"$cSelecDialogoActual\";\r\n";
+						
+						if ( !$cDialogosActual )									// Si está vacío el Select actual, asigna el primero que encuentra
+							$cDialogosActual = $cSelecDialogoActual;				// (Para el caso de que no halla Vista Principal por default)
+						
+						if ( $oVistas->id_vista == $this->nVista_principal )
+							$cDialogosActual	= $cSelecDialogoActual;
+						
+					}
 				}
 			}
-			if ( $cVistasSelects ) {
-				$cVistasSelects.="<optgroup label='----------'></optgroup>\r\n";
-				$cVistasSelects.="<option>Seleccionar por omisión</option>\r\n";
-			}
+
+			// if ( $cVistasSelects ) {
+				// $cVistasSelects.="<optgroup label='----------'></optgroup>\r\n";
+				// $cVistasSelects.="<option>Seleccionar por omisión</option>\r\n";
+			// }
 			
 			return $cSQL;
 		}

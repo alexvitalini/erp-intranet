@@ -2,14 +2,14 @@
 <?php require_once('php_funciones.php');?>
 <?php
 
-$cFechaDesde = "";
-$cFechaHasta = "";
+$cFechaDesde		= "";
+$cFechaHasta		= "";
 
-$cVistasSelects = "";
-$cFiltrosSelects = "";
-$cDialogosSelects = "";
+$cVistasSelects 	= "";
+$cFiltrosSelects	= "";
+$cDialogosSelects	= "";
 
-$cGruposDelModulo = "'Cursos','Representantes','Gastos','Honorarios'";
+$cGruposDelModulo = "'Cursos','Representantes','Gastos','Honorarios','Contabilidad'";
 
 /*
 select id_grupo,nombre_grupo,descripcion_grupo from erp_grupos_usuarios left join erp_grupos using ( id_grupo ) where id_usuario='1' && nombre_grupo IN ('Cursos','Representantes','Gastos','Honorarios')
@@ -27,15 +27,17 @@ function CargaFechasDefault( &$cIni , &$cFin ) {
 	}
 }
 
-CargaFechasDefault( $cFechaDesde , $cFechaHasta );
+CargaFechasDefault( $cFechaDesde , $cFechaHasta ); 
  
-echo( $connect->lVistasXGrupos( $cGruposDelModulo , $cVistasSelects, $cFiltrosSelects ,$cDialogosSelects ) );
+$connect->lVistasXGrupos( $cGruposDelModulo , $cVistasSelects , $cFiltroActual , $cJSFiltrosSelects , $cDialogosActual , $cJSDialogosSelects );
+
+$cRangosFechas = $connect->cRangosFechasPredefinidos( $cGruposDelModulo );
 
 ?>
 <div class="container-fuid" style="background-color: #FFF;">
 	<div class="row">
 		<div class="col">
-			<div class="card border-dorado" style="max-width: 600px">
+			<div class="card border-dorado" style="max-width: 730px">
 				<div class="card-header bg-dorado text-white">
 					Opciones consecutivo de cursos
 				</div>
@@ -43,7 +45,7 @@ echo( $connect->lVistasXGrupos( $cGruposDelModulo , $cVistasSelects, $cFiltrosSe
 					<form id="form_opciones">
 						<input type="hidden" name="tipo_consecutivo" id="tipo_consecutivo" value="C">
 						<div class="form-row align-items-end">
-							<div class="col-sm-5">
+							<div class="col-sm-4">
 								<div class="form-group mb-0">
 									<label for="fecha_desde" class="font-weight-bold">Seleccione las fechas</label>
 									<div class="input-group input-group-sm">
@@ -52,10 +54,9 @@ echo( $connect->lVistasXGrupos( $cGruposDelModulo , $cVistasSelects, $cFiltrosSe
 										</div>
 										<input type="date" class="form-control " value="<?php echo($cFechaDesde);?>" id="fecha_desde" name="fecha_desde" title="Puede oprimir F4 para desplegar el calendario" data-toggle="tooltip">
 									</div><!-- /.input-group -->
-									
 								</div><!-- /.form-group -->
 							</div><!-- /.col -->
-							<div class="col-sm-7">
+							<div class="col-sm-5">
 								<div class="form-group mb-0">
 									<div class="input-group input-group-sm">
 										<div class="input-group-prepend">
@@ -67,11 +68,7 @@ echo( $connect->lVistasXGrupos( $cGruposDelModulo , $cVistasSelects, $cFiltrosSe
 											<button type="button" class="btn btn-dorado dropdown-toggle dropdown-toggle-split active" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="o busque una opción predefinida en el submenú">
 											</button>
 											<div class="dropdown-menu">
-												<a class="dropdown-item" href="#" onClick="javascrip:CargaConsecutivo('a2')">Desde hace un mes</a>
-												<a class="dropdown-item" href="#" onClick="javascrip:CargaConsecutivo('a1')">Este mes</a>
-												<a class="dropdown-item" href="#" onClick="javascrip:CargaConsecutivo('a3')">Este mes y el próximo</a>
-												<div role="separator" class="dropdown-divider"></div>
-												<a class="dropdown-item" href="#" onClick="javascrip:CargaConsecutivo('a4')">Próximos 3 meses</a>
+											<?=$cRangosFechas?><!-- los botones -->
 											</div><!-- /.dropdown-menu -->
 										</div><!-- /.input-group-append -->
 									</div><!-- /.input-group -->
@@ -81,44 +78,41 @@ echo( $connect->lVistasXGrupos( $cGruposDelModulo , $cVistasSelects, $cFiltrosSe
 						<div class="form-row align-items-end mt-2">
 							<div class="col-sm-3">
 
-<div class="form-group">
-	<label for="tipo_vista">Vista</label>
-	<div class="input-group input-group-sm">
-		<select class="form-control" id="tipo_vista" name="tipo_vista">
-<?php echo($cVistasSelects); ?>
-		</select>
-	</div>
-</div>
-
-							</div> <!-- /.col -->
-							<div class="col-sm-3">
-
-<div class="form-group">
-	<label for="tipo_vista">Filtro</label>
-	<div class="input-group input-group-sm">
-		<select class="form-control" id="filtro" name="filtro">
-<?php echo($cFiltrosSelects); ?>
-		</select>
-	</div>
-</div>
-
+								<div class="form-group">
+									<label for="tipo_vista">Vista</label>
+									<div class="input-group input-group-sm">
+										<select class="form-control" id="tipo_vista" name="tipo_vista">
+								<?php echo($cVistasSelects); ?>
+										</select>
+									</div>
+								</div>
 
 							</div> <!-- /.col -->
 							<div class="col-sm-4">
 
-<div class="form-group">
-	<label for="tipo_vista">Diálogo captura</label>
-	<div class="input-group input-group-sm">
-		<select class="form-control" id="filtro" name="filtro">
-			<option value="inicial" >Salones</option>
-			<option value="carga">Gastos</option>
-			<option>Hojas de liquidación</option>
-			<option>Expositores</option>
-		</select>
-	</div>
-</div>
+								<div class="form-group">
+									<label for="filtro">Filtro</label>
+									<div class="input-group input-group-sm">
+										<select class="form-control" id="filtro" name="filtro">
+								<?php echo($cFiltroActual); ?>
+										</select>
+									</div>
+								</div>
 
 							</div> <!-- /.col -->
+							<div class="col-sm-3">
+							
+								<div class="form-group">
+									<label for="dialogo">Diálogo captura</label>
+									<div class="input-group input-group-sm">
+										<select class="form-control" id="dialogo" name="dialogo">
+								<?=$cDialogosActual?> 
+										</select>
+									</div>
+								</div>
+
+							</div> <!-- /.col -->
+
 						</div> <!-- /.row opciones -->
 					</form>
 				</div> <!-- /.card-body -->
@@ -166,7 +160,12 @@ echo( $connect->lVistasXGrupos( $cGruposDelModulo , $cVistasSelects, $cFiltrosSe
 
 
 <script>
+	$aFiltro = new Array();
+<?php echo($cJSFiltrosSelects);  ?>
 	
+	$aDialogo = new Array();
+<?=$cJSDialogosSelects?>
+
 	function CargaConsecutivo( $cTipo ) {
 		
 		$("#total_registros").empty()
@@ -198,6 +197,13 @@ $( function() {
 	$("#tabla_principal thead tr").clone().appendTo("#tabla_principal tfoot");
 	ConsecutivoDefault();
 	$('[data-toggle~="tooltip"]').tooltip();
+	$("#tipo_vista").change( function(){
+		$nVista = $(this).val();
+		console.log( $nVista )
+		$("#filtro").html(   $aFiltro[ $nVista ] );
+		$("#dialogo").html( $aDialogo[ $nVista ] );
+		//CargaConsecutivo( ("#tipo_consecutivo").val() );
+	} );
 } ); // function()
 
 </script>
