@@ -271,8 +271,8 @@ function mysql_fetch_all($res) {
 			return $this->lUsuarioValido;
 		}
 
-		public function filtrosPrincipalesSegunVista( $nId_vista , &$nFiltroPrincipal , &$nDialogoPrincipal ){
-			$cSQL = "select filtro_principal,dialogo_principal from erp_vistas_principales where id_usuario='$this->nIdUsuario' && id_vista='$nId_vista'";
+		public function filtrosPrincipalesSegunVista( $nId_vista , &$nFiltroPrincipal , &$nDialogoPrincipal , &$nRangoPrincipal ){
+			$cSQL = "select filtro_principal,dialogo_principal,rango_principal from erp_vistas_principales where id_usuario='$this->nIdUsuario' && id_vista='$nId_vista'";
 			
 			$sResultado = $this->sQuery( $cSQL );
 			
@@ -280,16 +280,16 @@ function mysql_fetch_all($res) {
 				$oResultado = mysql_fetch_object( $sResultado );
 				$nFiltroPrincipal = $oResultado->filtro_principal;
 				$nDialogoPrincipal = $oResultado->dialogo_principal;
+				$nRangoPrincipal = $oResultado->rango_principal;
 				mysql_free_result( $sResultado );
 			} else{
-				$nFiltroPrincipal = $nDialogoPrincipal = 0;
+				$nFiltroPrincipal = $nDialogoPrincipal = $nRangoPrincipal = 0;
 			}
 			
 		}
 		
 		public function lFiltrosSegunVista( $nIdVista , $nFiltroPrincipal , &$cSelecFiltroActual ) {
 			
-			// $cSQL = "SELECT id_filtro,nombre_filtro,descripcion_filtro FROM erp_filtros WHERE id_grupo='$oGrupos->id_grupo' && id_vista='$oVistas->id_vista'";
 			$cSQL = "SELECT id_filtro,nombre_filtro,descripcion_filtro FROM erp_filtros WHERE id_vista='$nIdVista'";
 			
 			$sFiltros			= $this->sQuery( $cSQL );
